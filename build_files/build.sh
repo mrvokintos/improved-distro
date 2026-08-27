@@ -72,9 +72,13 @@ rm -rf \
 	/usr/lib/waydroid \
 	/usr/share/ublue-os/waydroid
 
-### Prefer Fedora's Firefox RPM over Bazzite's default Firefox Flatpak
+### Configure Bazzite's system Flatpaks
 
 if [[ -f /usr/share/ublue-os/bazzite/flatpak/install ]]; then
 	sed -i '/^org\.mozilla\.firefox$/d' \
+		/usr/share/ublue-os/bazzite/flatpak/install
+	grep -qxF 'org.telegram.desktop' \
+		/usr/share/ublue-os/bazzite/flatpak/install || \
+		echo 'org.telegram.desktop' >> \
 		/usr/share/ublue-os/bazzite/flatpak/install
 fi

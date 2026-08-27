@@ -28,12 +28,20 @@ curl --location --fail --silent --show-error --retry 3 \
 dnf5 install -y "${DISCORD_RPM}"
 rm -f "${DISCORD_RPM}"
 
-# Epson gates this RPM behind an interactive license page, so keep the exact
-# vendor package in the build context and verify it before installation.
-EPSON_RPM=/ctx/rpms/epson-inkjet-printer-201207w-1.0.2-1.x86_64.rpm
-echo 'e8136c4ac38c26e8f908084428f28ab3f6eedba4c3993d16b7879d26844d15fa  '"${EPSON_RPM}" | \
-	sha256sum --check --strict
-dnf5 install -y "${EPSON_RPM}"
+# Epson gates these packages behind an interactive license page, so keep the
+# exact vendor RPMs in the build context and verify them before installation.
+EPSON_RPM_DIR=/ctx/rpms
+(
+	cd "${EPSON_RPM_DIR}"
+	sha256sum --check --strict <<'EOF'
+e8136c4ac38c26e8f908084428f28ab3f6eedba4c3993d16b7879d26844d15fa  epson-inkjet-printer-201207w-1.0.2-1.x86_64.rpm
+58f992ea28f4b2b010ba0a4b1bf213deeabf7ad02cd9927de19db0676c76d489  epson-printer-utility-1.2.3-1.x86_64.rpm
+a22c22b9619dbcf88cebd56856680757887c2907591cc896b9f74c99e706a9ef  iscan-2.30.4-2.x86_64.rpm
+f3145e301aadd6496802fbc856902d6ce3b6179aea7fcc8d813397daebcfa495  iscan-data-1.39.2-1.noarch.rpm
+344b6b0b0316625698d6a6c6f2681e1afc1480e66f90d1c9efd52b7628c2c33e  iscan-network-nt-1.1.2-1.x86_64.rpm
+EOF
+)
+dnf5 install -y "${EPSON_RPM_DIR}"/*.rpm
 
 # Fedora packages and applications from the repository files in
 # system_files/etc/yum.repos.d/.

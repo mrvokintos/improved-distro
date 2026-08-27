@@ -1,0 +1,6 @@
+[Logitech G502 X LS Legacy Wheel]
+MatchName=Logitech G502 X LS
+MatchBus=usb
+MatchVendor=0x046D
+MatchProduct=0x409F
+AttrEventCode=-REL_WHEEL_HI_RES;-REL_HWHEEL_HI_RES;

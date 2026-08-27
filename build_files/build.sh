@@ -20,14 +20,14 @@ dnf5 remove -y waydroid
 # the finished image; it is enabled again on every image build.
 dnf5 -y copr enable boria138/portproton
 
-# Fedora/RPM Fusion packages and applications from the repository files in
+# Discord is available from Terra, which Bazzite ships disabled by default.
+dnf5 install -y --enable-repo=terra discord
+
+# Fedora packages and applications from the repository files in
 # system_files/etc/yum.repos.d/.
 dnf5 install -y \
-	--enable-repo=rpmfusion-nonfree \
-	--enable-repo=rpmfusion-nonfree-updates \
 	brave-browser \
 	code \
-	discord \
 	firefox \
 	firefox-langpacks \
 	portprotonqt \

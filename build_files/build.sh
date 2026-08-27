@@ -20,8 +20,13 @@ dnf5 remove -y waydroid
 # the finished image; it is enabled again on every image build.
 dnf5 -y copr enable boria138/portproton
 
-# Discord is available from Terra, which Bazzite ships disabled by default.
-dnf5 install -y --enable-repo=terra discord
+# Install the latest official Discord RPM.
+DISCORD_RPM=$(mktemp --suffix=.rpm)
+curl --location --fail --silent --show-error --retry 3 \
+	--output "${DISCORD_RPM}" \
+	'https://discord.com/api/download?platform=linux&format=rpm'
+dnf5 install -y "${DISCORD_RPM}"
+rm -f "${DISCORD_RPM}"
 
 # Fedora packages and applications from the repository files in
 # system_files/etc/yum.repos.d/.

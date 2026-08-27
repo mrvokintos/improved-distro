@@ -17,6 +17,7 @@
       "automergeType": "pr",
       "platformAutomerge": false,
       "ignoreTests": false,
+      "rebaseWhen": "auto",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["ghcr.io/ublue-os/bazzite-nvidia-open"],
       "matchUpdateTypes": ["digest"]

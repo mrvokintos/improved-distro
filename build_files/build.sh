@@ -23,6 +23,8 @@ dnf5 -y copr enable boria138/portproton
 # Fedora/RPM Fusion packages and applications from the repository files in
 # system_files/etc/yum.repos.d/.
 dnf5 install -y \
+	--enable-repo=rpmfusion-nonfree \
+	--enable-repo=rpmfusion-nonfree-updates \
 	brave-browser \
 	code \
 	discord \

@@ -12,6 +12,16 @@
       "matchUpdateTypes": ["pin", "pinDigest"]
     },
     {
+      "description": "Follow tested Bazzite stable image updates automatically",
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": false,
+      "ignoreTests": false,
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/ublue-os/bazzite-nvidia-open"],
+      "matchUpdateTypes": ["digest"]
+    },
+    {
       "enabled": false,
       "matchUpdateTypes": ["digest", "pinDigest", "pin"],
       "matchDepTypes": ["container"],

@@ -28,6 +28,13 @@ curl --location --fail --silent --show-error --retry 3 \
 dnf5 install -y "${DISCORD_RPM}"
 rm -f "${DISCORD_RPM}"
 
+# Epson gates this RPM behind an interactive license page, so keep the exact
+# vendor package in the build context and verify it before installation.
+EPSON_RPM=/ctx/rpms/epson-inkjet-printer-201207w-1.0.2-1.x86_64.rpm
+echo 'e8136c4ac38c26e8f908084428f28ab3f6eedba4c3993d16b7879d26844d15fa  '"${EPSON_RPM}" | \
+	sha256sum --check --strict
+dnf5 install -y "${EPSON_RPM}"
+
 # Fedora packages and applications from the repository files in
 # system_files/etc/yum.repos.d/.
 dnf5 install -y \

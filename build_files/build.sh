@@ -41,7 +41,19 @@ f3145e301aadd6496802fbc856902d6ce3b6179aea7fcc8d813397daebcfa495  iscan-data-1.3
 344b6b0b0316625698d6a6c6f2681e1afc1480e66f90d1c9efd52b7628c2c33e  iscan-network-nt-1.1.2-1.x86_64.rpm
 EOF
 )
-dnf5 install -y "${EPSON_RPM_DIR}"/*.rpm
+
+# The current printer packages contain RPM digests and can be handled by DNF.
+# Image Scan!'s legacy RPMs predate payload digests, so install their Fedora
+# dependencies normally and bypass only their missing internal digest after
+# verifying the complete files against the SHA-256 manifest above.
+dnf5 install -y \
+	gtk2 \
+	"${EPSON_RPM_DIR}"/epson-inkjet-printer-201207w-1.0.2-1.x86_64.rpm \
+	"${EPSON_RPM_DIR}"/epson-printer-utility-1.2.3-1.x86_64.rpm
+rpm --install --nodigest --nosignature \
+	"${EPSON_RPM_DIR}"/iscan-data-1.39.2-1.noarch.rpm \
+	"${EPSON_RPM_DIR}"/iscan-2.30.4-2.x86_64.rpm \
+	"${EPSON_RPM_DIR}"/iscan-network-nt-1.1.2-1.x86_64.rpm
 
 # Fedora packages and applications from the repository files in
 # system_files/etc/yum.repos.d/.

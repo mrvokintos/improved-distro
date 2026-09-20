@@ -59,6 +59,7 @@ rpm --install --nodigest --nosignature \
 # system_files/etc/yum.repos.d/.
 dnf5 install -y \
 	brave-browser \
+	brave-origin \
 	code \
 	firefox \
 	firefox-langpacks \

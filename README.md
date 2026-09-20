@@ -15,6 +15,7 @@ This image is intended for a KDE desktop with an NVIDIA GPU supported by Bazzite
 ### Added to the system image
 
 - Brave Browser from the official Brave RPM repository
+- Brave Origin from the official Brave RPM repository
 - Visual Studio Code from the official Microsoft RPM repository
 - Discord from the official Discord RPM download
 - Firefox and Firefox language packs from Fedora RPM repositories

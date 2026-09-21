@@ -36,24 +36,13 @@ EPSON_RPM_DIR=/ctx/rpms
 	sha256sum --check --strict <<'EOF'
 e8136c4ac38c26e8f908084428f28ab3f6eedba4c3993d16b7879d26844d15fa  epson-inkjet-printer-201207w-1.0.2-1.x86_64.rpm
 58f992ea28f4b2b010ba0a4b1bf213deeabf7ad02cd9927de19db0676c76d489  epson-printer-utility-1.2.3-1.x86_64.rpm
-a22c22b9619dbcf88cebd56856680757887c2907591cc896b9f74c99e706a9ef  iscan-2.30.4-2.x86_64.rpm
-f3145e301aadd6496802fbc856902d6ce3b6179aea7fcc8d813397daebcfa495  iscan-data-1.39.2-1.noarch.rpm
-344b6b0b0316625698d6a6c6f2681e1afc1480e66f90d1c9efd52b7628c2c33e  iscan-network-nt-1.1.2-1.x86_64.rpm
 EOF
 )
 
-# The current printer packages contain RPM digests and can be handled by DNF.
-# Image Scan!'s legacy RPMs predate payload digests, so install their Fedora
-# dependencies normally and bypass only their missing internal digest after
-# verifying the complete files against the SHA-256 manifest above.
+# The printer packages contain RPM digests and can be handled by DNF.
 dnf5 install -y \
-	gtk2 \
 	"${EPSON_RPM_DIR}"/epson-inkjet-printer-201207w-1.0.2-1.x86_64.rpm \
 	"${EPSON_RPM_DIR}"/epson-printer-utility-1.2.3-1.x86_64.rpm
-rpm --install --nodigest --nosignature \
-	"${EPSON_RPM_DIR}"/iscan-data-1.39.2-1.noarch.rpm \
-	"${EPSON_RPM_DIR}"/iscan-2.30.4-2.x86_64.rpm \
-	"${EPSON_RPM_DIR}"/iscan-network-nt-1.1.2-1.x86_64.rpm
 
 # Fedora packages and applications from the repository files in
 # system_files/etc/yum.repos.d/.
@@ -63,14 +52,50 @@ dnf5 install -y \
 	code \
 	firefox \
 	firefox-langpacks \
+	jq \
 	portprotonqt \
-	throne
+	sane-backends \
+	sane-backends-drivers-scanners \
+	skanpage
+
+# GitHub's latest-release endpoint excludes drafts and pre-releases. Select the
+# official Fedora RPM and verify it against the digest published for the asset.
+THRONE_RELEASE=$(mktemp)
+THRONE_RPM=$(mktemp --suffix=.rpm)
+curl --location --fail --silent --show-error --retry 3 --retry-all-errors \
+	--header 'Accept: application/vnd.github+json' \
+	--header 'X-GitHub-Api-Version: 2022-11-28' \
+	--output "${THRONE_RELEASE}" \
+	'https://api.github.com/repos/throneproj/Throne/releases/latest'
+mapfile -t THRONE_ASSET < <(
+	jq -er '
+		[.assets[] | select(.name | endswith("-fedora-amd64-system-qt.rpm"))]
+		| if length == 1 then .[0] else error("expected exactly one Fedora AMD64 system-Qt RPM") end
+		| .browser_download_url, .digest
+	' "${THRONE_RELEASE}"
+)
+rm -f "${THRONE_RELEASE}"
+[[ ${#THRONE_ASSET[@]} -eq 2 ]]
+[[ ${THRONE_ASSET[0]} == https://github.com/throneproj/Throne/releases/download/* ]]
+[[ ${THRONE_ASSET[1]} == sha256:* ]]
+curl --location --fail --silent --show-error --retry 3 --retry-all-errors \
+	--output "${THRONE_RPM}" \
+	"${THRONE_ASSET[0]}"
+printf '%s  %s\n' "${THRONE_ASSET[1]#sha256:}" "${THRONE_RPM}" | \
+	sha256sum --check --strict
+dnf5 install -y "${THRONE_RPM}"
+rm -f "${THRONE_RPM}"
+test -x /opt/Throne/Throne
+test -f /usr/share/applications/Throne.desktop
+
+# The Epson L355 scanner speaks ESC/I over the network on port 1865.
+grep -qxF 'net 192.168.2.138 1865' /etc/sane.d/epson2.conf || \
+	printf '\nnet 192.168.2.138 1865\n' >> /etc/sane.d/epson2.conf
 
 dnf5 -y copr disable boria138/portproton
 dnf5 config-manager setopt \
 	brave-browser.enabled=0 \
-	code.enabled=0 \
-	throne-repo.enabled=0
+	code.enabled=0
 
 ### Remove Bazzite's Waydroid integration
 

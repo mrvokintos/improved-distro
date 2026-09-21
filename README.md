@@ -1,100 +1,86 @@
 # improved-distro
 
-`improved-distro` is a personal, signed [bootc](https://bootc-dev.github.io/bootc/) image derived from the stable NVIDIA Open edition of [Bazzite](https://bazzite.gg/). It keeps the regular Bazzite desktop and gaming stack while changing a small set of system applications and hardware defaults.
+## НАВАЙБКОЖЕНО!!
 
-The published image is:
+Моя персональная сборка [Bazzite](https://bazzite.gg/) для основного компьютера. Она сохраняет привычный игровой и десктопный набор Bazzite, но сразу содержит нужные мне программы, драйверы и несколько аппаратных исправлений.
+
+Готовый образ публикуется здесь:
 
 ```text
 ghcr.io/mrvokintos/improved-distro:latest
 ```
 
-This image is intended for a KDE desktop with an NVIDIA GPU supported by Bazzite's open NVIDIA kernel modules. It is not a general-purpose replacement for every Bazzite hardware variant.
+Сборка рассчитана на KDE и видеокарту NVIDIA, поддерживаемую открытыми модулями ядра NVIDIA в Bazzite.
 
-## Changes from Bazzite
+## Что изменено
 
-### Added to the system image
+В образ уже входят:
 
-- Brave Browser from the official Brave RPM repository
-- Brave Origin from the official Brave RPM repository
-- Visual Studio Code from the official Microsoft RPM repository
-- Discord from the official Discord RPM download
-- Firefox and Firefox language packs from Fedora RPM repositories
-- PortProtonQt from the `boria138/portproton` COPR
-- Throne from the Parhelia repository
-- Epson Inkjet Printer Driver `201207w`
-- Epson Printer Utility
-- Epson Image Scan!, scanner data, and network scanner support
+- Brave Browser и минималистичный Brave Origin;
+- Firefox с языковыми пакетами;
+- Visual Studio Code;
+- Discord;
+- Telegram Desktop;
+- PortProtonQt;
+- Throne;
+- драйвер и служебная программа для принтера Epson;
+- SANE и KDE Skanpage для сетевого сканирования на Epson L355.
 
-Telegram Desktop is installed as a system Flatpak from Flathub.
+Во время каждой сборки загружается последний стабильный релиз Throne. Для установки используется официальный Fedora RPM, а его контрольная сумма сверяется с digest, опубликованным GitHub.
 
-### Removed or changed
+Также в образе:
 
-- Waydroid and Bazzite's Waydroid integration are removed.
-- The Firefox Flatpak is removed from Bazzite's default Flatpak installation list because Firefox is provided as an RPM.
-- A libinput quirk disables high-resolution wheel events for the Logitech G502 X LS (`046d:409f`) to work around inconsistent scrolling.
-- `/opt` is part of the immutable image so RPM applications can safely install files there.
+- удалён Waydroid вместе с интеграцией Bazzite;
+- Firefox установлен как обычный RPM, поэтому его Flatpak-дубликат отключён;
+- добавлено исправление прокрутки для Logitech G502 X LS;
+- `/opt` сделан частью неизменяемого образа, чтобы приложения из RPM не теряли свои файлы после обновления системы.
 
-The external RPM repositories are enabled only while the image is being built and are disabled in the completed image. Vendored Epson packages are verified against SHA-256 checksums before installation.
+## Установка
 
-## Switching from Bazzite
-
-Only switch after the latest GitHub Actions build has completed successfully. Save any important data before changing operating-system images, even though bootc is designed to preserve system state across a switch.
+Перед переключением дождитесь успешного завершения последней сборки в GitHub Actions и сохраните важные данные.
 
 ```bash
 sudo bootc switch ghcr.io/mrvokintos/improved-distro:latest
 sudo systemctl reboot
 ```
 
-After rebooting, confirm the active deployment:
+После перезагрузки состояние системы можно проверить командой:
 
 ```bash
 sudo bootc status
 ```
 
-User data in `/var`—including `/var/home`—is preserved. Local configuration in `/etc` is merged into the new deployment. Files manually placed in immutable system directories such as `/usr` are not persistent and are replaced by the image.
+Домашняя папка и остальные данные в `/var` сохраняются. Локальные настройки из `/etc` объединяются с настройками нового образа. Вручную изменённые файлы в `/usr` при обновлении заменяются содержимым образа.
 
-Layered packages and custom system modifications may conflict with the new image. Remove unnecessary RPM layering before switching and keep a backup of irreplaceable files.
+## Обновления и откат
 
-## Rollback and return to Bazzite
+Образ регулярно пересобирается на свежей стабильной базе Bazzite. Обновления базового образа отслеживает Renovate, а GitHub Actions собирает, проверяет, подписывает и публикует результат.
 
-bootc keeps the previous deployment as a rollback option. To make the rollback deployment the default, use:
+Проверить наличие обновления вручную:
+
+```bash
+sudo bootc update
+```
+
+Вернуться к предыдущему развёртыванию:
 
 ```bash
 sudo bootc rollback
 sudo systemctl reboot
 ```
 
-You can also return explicitly to the upstream image used by this project:
+Вернуться на обычный Bazzite:
 
 ```bash
 sudo bootc switch ghcr.io/ublue-os/bazzite-nvidia-open:stable
 sudo systemctl reboot
 ```
 
-If the new deployment does not boot, select the previous deployment from the bootloader menu.
+Если система не загружается, предыдущее развёртывание можно выбрать в меню загрузчика.
 
-## Updates
+## Проверка подписи
 
-Updates are automatic end to end:
-
-1. Renovate detects a new digest for `bazzite-nvidia-open:stable`.
-2. Renovate opens a pull request containing the new pinned digest.
-3. GitHub Actions builds and validates the complete customized image.
-4. Renovate merges the pull request only after the checks pass.
-5. GitHub Actions signs and publishes the new `latest` image to GHCR.
-6. The normal Bazzite/bootc update mechanism can deploy that new image on installed systems.
-
-If validation fails, the update is not merged and the previously published image remains available. Renovate configuration is stored in [`.github/renovate.json5`](./.github/renovate.json5).
-
-To check for and stage an update manually:
-
-```bash
-sudo bootc update
-```
-
-## Image verification
-
-Published images are signed with Cosign. The public key is committed as [`cosign.pub`](./cosign.pub):
+Опубликованные образы подписываются Cosign. Публичный ключ находится в [`cosign.pub`](./cosign.pub).
 
 ```bash
 cosign verify \
@@ -102,25 +88,22 @@ cosign verify \
   ghcr.io/mrvokintos/improved-distro:latest
 ```
 
-## Repository layout
+## Локальная сборка
 
-- [`Containerfile`](./Containerfile) selects the pinned Bazzite base and runs the customization script.
-- [`build_files/build.sh`](./build_files/build.sh) installs and removes software during the image build.
-- [`build_files/rpms`](./build_files/rpms) contains the licensed Epson vendor RPMs used by the image.
-- [`system_files`](./system_files) contains files copied directly into the image filesystem.
-- [`.github/workflows/build.yml`](./.github/workflows/build.yml) builds, signs, and publishes the OCI image.
-- [`.github/workflows/build-disk.yml`](./.github/workflows/build-disk.yml) can create installation media manually.
-
-## Local build
-
-The normal build is performed by GitHub Actions. For local testing, install Podman and `just`, then run:
+Для локальной сборки нужны Podman и `just`:
 
 ```bash
 just build improved-distro latest
 ```
 
-The image is based on Universal Blue's official [image-template](https://github.com/ublue-os/image-template). See the [Bazzite custom image documentation](https://docs.bazzite.gg/Advanced/creating_custom_image/) for background and supported approaches.
+Основные файлы проекта:
 
-## Disclaimer
+- [`Containerfile`](./Containerfile) — базовый образ и запуск сборки;
+- [`build_files/build.sh`](./build_files/build.sh) — установка и удаление пакетов;
+- [`build_files/rpms`](./build_files/rpms) — локальные RPM для принтера Epson;
+- [`system_files`](./system_files) — файлы, добавляемые непосредственно в систему;
+- [`.github/workflows/build.yml`](./.github/workflows/build.yml) — сборка, подпись и публикация образа.
 
-This is a personal image, not an official Bazzite or Universal Blue release. Bazzite, Universal Blue, Fedora, Epson, Brave, Microsoft, Discord, and the other included projects remain the property of their respective owners.
+## Важно
+
+Это личная сборка, а не официальный продукт Bazzite, Universal Blue или Fedora. Используйте её только если понимаете, чем кастомный системный образ отличается от обычной установки Linux.

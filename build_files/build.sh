@@ -88,9 +88,40 @@ rm -f "${THRONE_RPM}"
 test -x /opt/Throne/Throne
 test -f /usr/share/applications/Throne.desktop
 
-# The Epson L355 scanner speaks ESC/I over the network on port 1865.
-grep -qxF 'net 192.168.2.138 1865' /etc/sane.d/epson2.conf || \
-	printf '\nnet 192.168.2.138 1865\n' >> /etc/sane.d/epson2.conf
+# Register Throne's bundled icon with the desktop icon theme. The upstream RPM
+# references the image in /opt directly, which Plasma does not reliably match
+# to the running application.
+install -Dm0644 \
+	/opt/Throne/Throne.png \
+	/usr/share/icons/hicolor/512x512/apps/throne.png
+sed -i 's|^Icon=.*$|Icon=throne|' /usr/share/applications/Throne.desktop
+grep -q '^StartupWMClass=' /usr/share/applications/Throne.desktop || \
+	sed -i '/^Icon=/a StartupWMClass=Throne' \
+		/usr/share/applications/Throne.desktop
+if command -v gtk-update-icon-cache >/dev/null; then
+	gtk-update-icon-cache --force /usr/share/icons/hicolor
+fi
+grep -qxF 'Icon=throne' /usr/share/applications/Throne.desktop
+test -f /usr/share/icons/hicolor/512x512/apps/throne.png
+
+# This image uses only the Epson L355 scanner, so do not probe unrelated SANE
+# backends every time an application enumerates devices.
+printf 'epson2\n' > /etc/sane.d/dll.conf
+
+# The epson2 backend expects only the host after "net" and uses its protocol
+# port internally; appending a port makes it resolve an invalid hostname.
+sed -i \
+	's/^[[:space:]]*net[[:space:]]\+autodiscovery[[:space:]]*$/# net autodiscovery disabled/' \
+	/etc/sane.d/epson2.conf
+grep -qxF 'net 192.168.2.138' /etc/sane.d/epson2.conf || \
+	printf '\nnet 192.168.2.138\n' >> /etc/sane.d/epson2.conf
+
+# The same scanner is also advertised over WSD. Disable the generic AirScan
+# backend to avoid a duplicate device and its slow network discovery pass.
+if [[ -f /etc/sane.d/dll.d/airscan ]]; then
+	sed -i 's/^[[:space:]]*airscan[[:space:]]*$/# airscan disabled/' \
+		/etc/sane.d/dll.d/airscan
+fi
 
 dnf5 -y copr disable boria138/portproton
 dnf5 config-manager setopt \

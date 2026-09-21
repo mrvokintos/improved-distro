@@ -23,6 +23,7 @@ ghcr.io/mrvokintos/improved-distro:latest
 - Telegram Desktop;
 - PortProtonQt;
 - Throne;
+- ckb-next для настройки поддерживаемых устройств Corsair;
 - драйвер и служебная программа для принтера Epson;
 - SANE и KDE Skanpage для сетевого сканирования на Epson L355.
 

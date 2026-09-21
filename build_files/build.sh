@@ -49,6 +49,7 @@ dnf5 install -y \
 dnf5 install -y \
 	brave-browser \
 	brave-origin \
+	ckb-next \
 	code \
 	firefox \
 	firefox-langpacks \
@@ -57,6 +58,9 @@ dnf5 install -y \
 	sane-backends \
 	sane-backends-drivers-scanners \
 	skanpage
+
+# The daemon talks to supported Corsair devices and is required by the GUI.
+systemctl enable ckb-next-daemon.service
 
 # GitHub's latest-release endpoint excludes drafts and pre-releases. Select the
 # official Fedora RPM and verify it against the digest published for the asset.

@@ -53,11 +53,41 @@ dnf5 install -y \
 	code \
 	firefox \
 	firefox-langpacks \
+	fontconfig \
+	google-carlito-fonts \
+	google-crosextra-caladea-fonts \
 	jq \
+	julietaula-montserrat-fonts \
+	liberation-fonts-all \
 	portprotonqt \
 	sane-backends \
 	sane-backends-drivers-scanners \
 	skanpage
+
+# Download the four original Times New Roman TTFs directly. Their SHA-256
+# hashes match the files in Microsoft's verified Core Fonts archive.
+(
+	TIMES_WORKDIR=$(mktemp -d)
+	trap 'rm -rf "${TIMES_WORKDIR}"' EXIT
+	TIMES_FONT_BASE='https://raw.githubusercontent.com/misuchiru03/font-times-new-roman/78a017b4a19ae3063eedbfa36c548709295cd67a'
+	while read -r source_file font checksum; do
+		curl --location --fail --silent --show-error --retry 3 --retry-all-errors \
+			--output "${TIMES_WORKDIR}/${font}" \
+			"${TIMES_FONT_BASE}/${source_file}"
+		printf '%s  %s\n' "${checksum}" "${TIMES_WORKDIR}/${font}" | \
+			sha256sum --check --strict
+		install -Dm0644 "${TIMES_WORKDIR}/${font}" \
+			"/usr/share/fonts/microsoft-core/${font}"
+	done <<'EOF'
+Times%20New%20Roman.ttf times.ttf 4e98adeff8ccc8ef4e3ece8d4547e288ff85fdc9c7ca711a4599c234874bbe86
+Times%20New%20Roman%20-%20Bold.ttf timesbd.ttf 4357b63cef20c01661a53c5dae70ffd20cb4765503aaed6d38b17a57c5a90bff
+Times%20New%20Roman%20-%20Italic.ttf timesi.ttf c25ae529b4cecdbca148b6ccb862ee0abad770af8b1fd29c8dba619d1b8da78a
+Times%20New%20Roman%20-%20Bold%20Italic.ttf timesbi.ttf 192e1b0d18e90334e999a99f8c32808d6a2e74b3698b8cd90c943c2249a46549
+EOF
+	fc-scan --format '%{family}\n' \
+		/usr/share/fonts/microsoft-core/times.ttf | grep -qxF 'Times New Roman'
+	fc-cache -f /usr/share/fonts/microsoft-core
+)
 
 # The daemon talks to supported Corsair devices and is required by the GUI.
 systemctl enable ckb-next-daemon.service

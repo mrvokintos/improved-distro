@@ -24,10 +24,13 @@ ghcr.io/mrvokintos/improved-distro:latest
 - PortProtonQt;
 - Throne;
 - ckb-next для настройки поддерживаемых устройств Corsair;
+- офисные шрифты для документов в OnlyOffice Flatpak: оригинальный Times New Roman, Liberation, Carlito, Caladea и Montserrat;
 - драйвер и служебная программа для принтера Epson;
 - SANE и KDE Skanpage для сетевого сканирования на Epson L355.
 
 Сканер подключается напрямую через `epson2`. Остальные SANE-драйверы и дополнительное WSD-обнаружение отключены, чтобы поиск устройства не создавал дубликат и не задерживал запуск программы.
+
+Оригинальный Times New Roman скачивается как четыре готовых `.ttf` из [репозитория шрифтов](https://github.com/misuchiru03/font-times-new-roman). Сборка закреплена на конкретном коммите и сверяет SHA-256 каждого файла с шрифтами из [Microsoft Core Fonts](https://sourceforge.net/projects/corefonts/files/the%20fonts/final/). Шрифты сразу устанавливаются в `/usr/share/fonts` и доступны OnlyOffice Flatpak. После обновления системы перезапустите редактор, если он был открыт.
 
 Во время каждой сборки загружается последний стабильный релиз Throne. Для установки используется официальный Fedora RPM, а его контрольная сумма сверяется с digest, опубликованным GitHub.
 

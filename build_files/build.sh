@@ -12,6 +12,9 @@ cp -avf "/ctx/system_files"/. /
 # List of rpmfusion packages can be found here:
 # https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/43/x86_64/repoview/index.html&protocol=https&redirect=1
 
+# Remove Waydroid itself. Bazzite's helper files are not owned by the
+# Waydroid RPM, so they are cleaned up separately below.
+dnf5 remove -y waydroid
 
 # PortProtonQt is distributed through COPR. Keep the repository disabled in
 # the finished image; it is enabled again on every image build.
@@ -48,6 +51,11 @@ dnf5 install -y \
 	brave-origin \
 	ckb-next \
 	code \
+	containerd.io \
+	docker-buildx-plugin \
+	docker-ce \
+	docker-ce-cli \
+	docker-compose-plugin \
 	firefox \
 	firefox-langpacks \
 	fontconfig \
@@ -88,6 +96,7 @@ EOF
 
 # The daemon talks to supported Corsair devices and is required by the GUI.
 systemctl enable ckb-next-daemon.service
+systemctl enable docker.socket
 
 # GitHub's latest-release endpoint excludes drafts and pre-releases. Select the
 # official Fedora RPM and verify it against the digest published for the asset.
@@ -164,7 +173,36 @@ fi
 dnf5 -y copr disable boria138/portproton
 dnf5 config-manager setopt \
 	brave-browser.enabled=0 \
-	code.enabled=0
+	code.enabled=0 \
+	docker-ce-stable.enabled=0
+
+### Remove Bazzite's Waydroid integration
+
+sed -i '\|82-bazzite-waydroid.just|d' /usr/share/ublue-os/justfile
+
+if [[ -f /usr/share/yafti/yafti.yml ]]; then
+	sed -i \
+		'/^      - id: "waydroid"$/,/^  - title:/{/^  - title:/!d;}' \
+		/usr/share/yafti/yafti.yml
+fi
+
+rm -f \
+	/etc/default/waydroid-launcher \
+	/usr/bin/waydroid-choose-gpu \
+	/usr/bin/waydroid-launcher \
+	/usr/libexec/waydroid-container-restart \
+	/usr/libexec/waydroid-container-start \
+	/usr/libexec/waydroid-container-stop \
+	/usr/libexec/waydroid-fix-controllers \
+	/usr/share/applications/waydroid-container-restart.desktop \
+	/usr/share/polkit-1/actions/org.bazzite.waydroid.policy \
+	/usr/share/polkit-1/rules.d/30-waydroid.rules \
+	/usr/share/ublue-os/just/82-bazzite-waydroid.just \
+	/usr/share/ublue-os/motd/tips/20-bazzite.md
+
+rm -rf \
+	/usr/lib/waydroid \
+	/usr/share/ublue-os/waydroid
 
 ### Configure Bazzite's system Flatpaks
 

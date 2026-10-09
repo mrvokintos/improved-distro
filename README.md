@@ -23,6 +23,7 @@ ghcr.io/mrvokintos/improved-distro:latest
 - Telegram Desktop;
 - PortProtonQt;
 - Throne;
+- Docker (Docker CE, CLI, Buildx, Compose) со службой docker.socket;
 - ckb-next для настройки поддерживаемых устройств Corsair;
 - офисные шрифты для документов в OnlyOffice Flatpak: оригинальный Times New Roman, Liberation, Carlito, Caladea и Montserrat;
 - драйвер и служебная программа для принтера Epson;
@@ -36,6 +37,7 @@ ghcr.io/mrvokintos/improved-distro:latest
 
 Также в образе:
 
+- удалён Waydroid вместе с интеграцией Bazzite;
 - Firefox установлен как обычный RPM, поэтому его Flatpak-дубликат отключён;
 - добавлено исправление прокрутки для Logitech G502 X LS;
 - `/opt` сделан частью неизменяемого образа, чтобы приложения из RPM не теряли свои файлы после обновления системы.

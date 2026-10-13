@@ -4,7 +4,7 @@ COPY build_files /
 COPY system_files /system_files
 
 # Base Image
-FROM ghcr.io/ublue-os/bazzite-nvidia-open:stable@sha256:0b03e96100a7feb03a8d375cbc9ed448154298c6687edd21877b95c196e324a1
+FROM ghcr.io/ublue-os/bazzite-nvidia-open:stable@sha256:ed93d2158a1bcba16b226bfb3ab6391446d11466646188c800b982d709435151
 ## Other possible base images include:
 # FROM ghcr.io/ublue-os/bazzite:testing
 # FROM ghcr.io/ublue-os/aurora:stable

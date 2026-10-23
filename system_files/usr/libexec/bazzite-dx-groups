@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+# SCRIPT VERSION
+GROUP_SETUP_VER=1
+GROUP_SETUP_VER_FILE="/etc/ublue/dx-groups"
+GROUP_SETUP_VER_RAN=$(cat "$GROUP_SETUP_VER_FILE" 2>/dev/null || echo "0")
+
+mkdir -p /etc/ublue
+
+if [[ -f $GROUP_SETUP_VER_FILE && "$GROUP_SETUP_VER" = "$GROUP_SETUP_VER_RAN" ]]; then
+  exit 0
+fi
+
+append_group() {
+  local group_name="$1"
+  if ! grep -q "^$group_name:" /etc/group; then
+    echo "Appending $group_name to /etc/group"
+    grep "^$group_name:" /usr/lib/group | tee -a /etc/group >/dev/null
+  fi
+}
+
+append_group docker
+
+wheelarray=($(getent group wheel | cut -d ":" -f 4 | tr ',' '\n'))
+for user in "${wheelarray[@]}"; do
+  usermod -aG docker "$user"
+done
+
+echo "$GROUP_SETUP_VER" >"$GROUP_SETUP_VER_FILE"
+

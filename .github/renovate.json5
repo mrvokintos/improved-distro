@@ -5,6 +5,7 @@
   ],
 
   "rebaseWhen": "never",
+  "platformAutomerge": true,
 
   "packageRules": [
     {
@@ -15,7 +16,7 @@
       "description": "Follow tested Bazzite stable image updates automatically",
       "automerge": true,
       "automergeType": "pr",
-      "platformAutomerge": false,
+      "platformAutomerge": true,
       "ignoreTests": false,
       "rebaseWhen": "auto",
       "matchDatasources": ["docker"],

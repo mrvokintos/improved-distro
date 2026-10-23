@@ -97,6 +97,7 @@ EOF
 # The daemon talks to supported Corsair devices and is required by the GUI.
 systemctl enable ckb-next-daemon.service
 systemctl enable docker.socket
+systemctl enable bazzite-dx-groups.service
 
 # GitHub's latest-release endpoint excludes drafts and pre-releases. Select the
 # official Fedora RPM and verify it against the digest published for the asset.
@@ -179,6 +180,7 @@ dnf5 config-manager setopt \
 ### Remove Bazzite's Waydroid integration
 
 sed -i '\|82-bazzite-waydroid.just|d' /usr/share/ublue-os/justfile
+echo 'import "/usr/share/ublue-os/just/96-improved-distro.just"' >> /usr/share/ublue-os/justfile
 
 if [[ -f /usr/share/yafti/yafti.yml ]]; then
 	sed -i \
@@ -214,3 +216,7 @@ if [[ -f /usr/share/ublue-os/bazzite/flatpak/install ]]; then
 		echo 'org.telegram.desktop' >> \
 		/usr/share/ublue-os/bazzite/flatpak/install
 fi
+
+### System cleanup
+dnf5 clean all
+rm -rf /tmp/* || true

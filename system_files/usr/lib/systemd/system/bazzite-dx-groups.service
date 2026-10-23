@@ -1,0 +1,11 @@
+[Unit]
+Description=Add wheel members to docker group
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/bazzite-dx-groups
+
+[Install]
+WantedBy=default.target
+

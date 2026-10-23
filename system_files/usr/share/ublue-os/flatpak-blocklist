@@ -1,0 +1,7 @@
+deny com.valvesoftware.Steam/*
+deny net.lutris.Lutris/*
+deny org.mozilla.firefox/*
+deny com.visualstudio.code/*
+deny com.discordapp.Discord/*
+deny com.brave.Browser/*
+

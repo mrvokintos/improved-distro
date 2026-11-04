@@ -121,6 +121,11 @@ build $target_image=image_name $tag=default_tag:
     LABELS+=("--label" "org.opencontainers.image.title={{ image_name }}")
     LABELS+=("--label" "org.opencontainers.image.vendor={{ repo_organization }}")
 
+    # Pass a GitHub token (if available) as a build secret to avoid anonymous API rate limits.
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+        BUILD_ARGS+=("--secret" "id=github_token,env=GITHUB_TOKEN")
+    fi
+
     # This actually builds the image!
     PODMAN_BUILD_ARGS=("${BUILD_ARGS[@]}" "${LABELS[@]}" --pull=newer --tag "${target_image}:${tag}" --file Containerfile)
 

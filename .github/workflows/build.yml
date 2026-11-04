@@ -69,6 +69,8 @@ jobs:
       # This actually builds the container image
       - name: Build Image
         id: build-image
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           just build \
             ${IMAGE_NAME} \

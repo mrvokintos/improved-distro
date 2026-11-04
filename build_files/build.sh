@@ -103,11 +103,22 @@ systemctl enable bazzite-dx-groups.service
 # official Fedora RPM and verify it against the digest published for the asset.
 THRONE_RELEASE=$(mktemp)
 THRONE_RPM=$(mktemp --suffix=.rpm)
+# Authenticate GitHub API requests when a token secret is provided, to avoid
+# anonymous rate limits on shared CI runners. Tracing is disabled so the token
+# never appears in build logs.
+set +x
+GITHUB_API_AUTH=()
+if [[ -s /run/secrets/github_token ]]; then
+	GITHUB_API_AUTH=(--header "Authorization: Bearer $(</run/secrets/github_token)")
+fi
 curl --location --fail --silent --show-error --retry 3 --retry-all-errors \
+	"${GITHUB_API_AUTH[@]}" \
 	--header 'Accept: application/vnd.github+json' \
 	--header 'X-GitHub-Api-Version: 2022-11-28' \
 	--output "${THRONE_RELEASE}" \
 	'https://api.github.com/repos/throneproj/Throne/releases/latest'
+unset GITHUB_API_AUTH
+set -x
 mapfile -t THRONE_ASSET < <(
 	jq -er '
 		[.assets[] | select(.name | endswith("-fedora-amd64-system-qt.rpm"))]

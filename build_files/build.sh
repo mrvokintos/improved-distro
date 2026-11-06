@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ouex pipefail
+set -euxo pipefail
 
 # Copy the contents of system_files/ of the git repo to /
 cp -avf "/ctx/system_files"/. /
@@ -45,8 +45,10 @@ dnf5 install -y \
 	"${EPSON_RPM_DIR}"/epson-printer-utility-1.2.3-1.x86_64.rpm
 
 # Fedora packages and applications from the repository files in
-# system_files/etc/yum.repos.d/.
+# system_files/etc/yum.repos.d/. Third-party repositories stay disabled in the
+# finished image and are enabled only for this transaction.
 dnf5 install -y \
+	--enable-repo=brave-browser,code,docker-ce-stable \
 	brave-browser \
 	brave-origin \
 	ckb-next \
@@ -97,7 +99,7 @@ EOF
 # The daemon talks to supported Corsair devices and is required by the GUI.
 systemctl enable ckb-next-daemon.service
 systemctl enable docker.socket
-systemctl enable bazzite-dx-groups.service
+systemctl enable improved-distro-groups.service
 
 # GitHub's latest-release endpoint excludes drafts and pre-releases. Select the
 # official Fedora RPM and verify it against the digest published for the asset.
@@ -141,11 +143,16 @@ test -x /opt/Throne/Throne
 test -f /opt/Throne/ThroneCore
 test -f /usr/share/applications/Throne.desktop
 
-# ThroneCore requires root privileges (SUID) to manage TUN interfaces and routing.
-# In an immutable image (/opt is read-only at runtime), Throne cannot set SUID at runtime.
+# ThroneCore needs elevated privileges for TUN mode, and /opt is read-only at
+# runtime, so grant them here. Use file capabilities instead of SUID root: the
+# core reports itself as privileged only when it has exactly this set
+# (core/internal/rpc/privilege_linux.go upstream), and nothing more is needed.
+THRONE_CAPS='cap_net_admin,cap_net_raw,cap_net_bind_service,cap_sys_ptrace,cap_dac_read_search=ep'
 chown root:root /opt/Throne/ThroneCore
-chmod 4755 /opt/Throne/ThroneCore
-test -u /opt/Throne/ThroneCore
+chmod 0755 /opt/Throne/ThroneCore
+setcap "${THRONE_CAPS}" /opt/Throne/ThroneCore
+test ! -u /opt/Throne/ThroneCore
+getcap /opt/Throne/ThroneCore | grep -qF "${THRONE_CAPS}"
 
 # Register Throne's bundled icon with the desktop icon theme. The upstream RPM
 # references the image in /opt directly, which Plasma does not reliably match
@@ -183,10 +190,28 @@ if [[ -f /etc/sane.d/dll.d/airscan ]]; then
 fi
 
 dnf5 -y copr disable boria138/portproton
-dnf5 config-manager setopt \
-	brave-browser.enabled=0 \
-	code.enabled=0 \
-	docker-ce-stable.enabled=0
+
+### Firefox hardware video decoding on NVIDIA
+
+# Apply the NVDEC environment to Firefox only instead of the whole session, the
+# same way Bazzite scopes it to the Firefox Flatpak. The values can still be
+# overridden from the environment.
+sed -i '1a\
+# improved-distro: NVDEC (nvidia-vaapi-driver) for Firefox only\
+export LIBVA_DRIVER_NAME="${LIBVA_DRIVER_NAME:-nvidia}"\
+export NVD_BACKEND="${NVD_BACKEND:-direct}"\
+export MOZ_DISABLE_RDD_SANDBOX="${MOZ_DISABLE_RDD_SANDBOX:-1}"' \
+	/usr/bin/firefox
+bash -n /usr/bin/firefox
+grep -qF 'improved-distro: NVDEC' /usr/bin/firefox
+
+### KDE Plasma defaults
+
+# Single copy of the panel layout in /usr/share/ublue-os/plasma, used both for
+# new users and by `ujust restore-panels`.
+install -Dm0644 -t /etc/skel/.config \
+	/usr/share/ublue-os/plasma/plasma-org.kde.plasma.desktop-appletsrc \
+	/usr/share/ublue-os/plasma/plasmashellrc
 
 ### Remove Bazzite's Waydroid integration
 

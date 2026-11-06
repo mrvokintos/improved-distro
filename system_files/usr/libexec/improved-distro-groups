@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Make sure every member of "wheel" is also in "docker". Runs on every boot and
+# only changes what is missing, so users added to wheel later are picked up too.
+set -euo pipefail
+
+# With nss-altfiles the docker group lives in /usr/lib/group, which usermod
+# cannot modify. Copy the entry into /etc/group first.
+if ! grep -q '^docker:' /etc/group; then
+	echo "Appending docker to /etc/group"
+	grep '^docker:' /usr/lib/group >> /etc/group
+fi
+
+IFS=',' read -r -a wheel_members <<< "$(getent group wheel | cut -d: -f4)"
+IFS=',' read -r -a docker_members <<< "$(getent group docker | cut -d: -f4)"
+
+for user in "${wheel_members[@]}"; do
+	[[ -n $user ]] || continue
+	if [[ " ${docker_members[*]} " != *" ${user} "* ]]; then
+		echo "Adding ${user} to docker"
+		usermod -aG docker "${user}"
+	fi
+done

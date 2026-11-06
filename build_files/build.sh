@@ -147,12 +147,17 @@ test -f /usr/share/applications/Throne.desktop
 # runtime, so grant them here. Use file capabilities instead of SUID root: the
 # core reports itself as privileged only when it has exactly this set
 # (core/internal/rpc/privilege_linux.go upstream), and nothing more is needed.
-THRONE_CAPS='cap_net_admin,cap_net_raw,cap_net_bind_service,cap_sys_ptrace,cap_dac_read_search=ep'
+THRONE_CAPS=(cap_net_admin cap_net_raw cap_net_bind_service cap_sys_ptrace cap_dac_read_search)
 chown root:root /opt/Throne/ThroneCore
 chmod 0755 /opt/Throne/ThroneCore
-setcap "${THRONE_CAPS}" /opt/Throne/ThroneCore
+setcap "$(IFS=,; echo "${THRONE_CAPS[*]}")=ep" /opt/Throne/ThroneCore
 test ! -u /opt/Throne/ThroneCore
-getcap /opt/Throne/ThroneCore | grep -qF "${THRONE_CAPS}"
+# getcap prints capabilities sorted by number, so check each one separately.
+THRONE_GETCAP=$(getcap /opt/Throne/ThroneCore)
+[[ ${THRONE_GETCAP} == *=ep ]]
+for cap in "${THRONE_CAPS[@]}"; do
+	[[ ,${THRONE_GETCAP#* }, == *",${cap},"* || ,${THRONE_GETCAP#* }, == *",${cap}="* ]]
+done
 
 # Register Throne's bundled icon with the desktop icon theme. The upstream RPM
 # references the image in /opt directly, which Plasma does not reliably match
